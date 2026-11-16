@@ -4,7 +4,7 @@ MooriShell is in an early experimental stage. Contributions should help make the
 
 ## Before contributing
 
-- Check the README and existing issues before starting work.
+- Check the README, [roadmap](docs/roadmap.md), and existing issues before starting work.
 - For substantial changes, open an issue or discussion first so the approach can be agreed.
 - Keep pull requests focused and explain the problem they solve.
 - Distinguish verified behavior from experiments and planned work.
@@ -45,4 +45,4 @@ Do not claim a feature is complete unless it has been tested.
 
 Do not copy or redistribute upstream source code, assets or binaries without checking the applicable license and attribution requirements. Prefer links to official upstream installation and documentation sources.
 
-The license for original MooriShell contributions is still to be selected. Until that policy is established, discuss contributions that introduce licensing or redistribution questions before submitting them.
+Original MooriShell materials are licensed under the MIT License. Contributions submitted to this repository are intended to be distributed under the same license. Third-party dependencies and assets remain under their own licenses.
