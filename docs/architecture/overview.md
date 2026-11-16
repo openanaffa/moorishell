@@ -22,7 +22,7 @@ It is not intended to replace the Windows operating system, nor to claim ownersh
 | Runtime provisioning | Selecting language/runtime versions | mise under evaluation |
 | Developer toolchains | Language and compiler toolchains | Bun, Node.js, Rust, Go, C/C++ |
 
-The exact integration contracts and ownership boundaries remain to be designed.
+The exact integration contracts and ownership boundaries remain to be designed. See the [roadmap](roadmap.md) for the planned decision and implementation sequence.
 
 ## Repository-owned responsibilities
 
@@ -35,6 +35,8 @@ MooriShell should own:
 - Tests or checks for MooriShell-owned automation.
 
 Upstream projects should own their respective executables, source code, release cycles and licenses unless MooriShell explicitly maintains a separately licensed fork.
+
+Original MooriShell materials are licensed under the MIT License. That license does not replace or modify the licenses of upstream applications, dependencies, assets, or binaries.
 
 ## Configuration strategy
 
@@ -65,6 +67,6 @@ Setup automation should be incremental, inspectable and reversible where practic
 - Define configuration backup and restore behavior.
 - Select the package-manager ownership policy.
 - Define the relationship between Windows, WSL2 and Docker workspaces.
-- Select a license for original MooriShell materials.
+- Define the supported Windows baseline and compatibility matrix.
 
 Update this document as implementation decisions are validated.
