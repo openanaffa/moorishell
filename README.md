@@ -27,6 +27,8 @@ The current work is focused on exploring and integrating:
 
 This table describes the current exploration, not a promise that every integration is complete or supported.
 
+See the [roadmap](docs/roadmap.md) for milestones, deliverables, and task tracking. Each milestone links to its GitHub tracking issue.
+
 ## Design direction
 
 MooriShell's visual identity draws from Moroccan architecture and geometric craft:
@@ -44,7 +46,7 @@ The repository is being organized around project-owned configuration and automat
 
 - `branding/` — visual identity, logos and design tokens.
 - `configs/` — MooriShell-owned configurations for integrated tools.
-- `docs/` — architecture, setup, usage and troubleshooting.
+- `docs/` — roadmap, architecture, setup, usage and troubleshooting.
 - `scripts/` — installation, setup, validation and maintenance automation.
 - `toolchain/` — developer toolchain definitions and environment setup.
 
@@ -70,6 +72,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the current contribution expectations
 
 ## Licensing
 
-A license for original MooriShell materials has not been selected yet. Until a license is added, do not assume that this repository grants permission to reuse, modify or redistribute its original contents.
+Original MooriShell materials in this repository are licensed under the [MIT License](LICENSE).
 
-Each upstream dependency remains governed by its own license and terms.
+Third-party applications, dependencies, assets, and other upstream materials remain governed by their respective licenses and terms. The MooriShell license does not relicense those projects.
