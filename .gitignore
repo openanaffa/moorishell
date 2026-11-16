@@ -1,0 +1,32 @@
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+System Volume Information/
+
+# macOS / Linux desktop metadata
+.DS_Store
+.Trash-*/
+.nfs*
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Build and package output
+dist/
+build/
+out/
+.cache/
