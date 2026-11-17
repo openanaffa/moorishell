@@ -1,0 +1,43 @@
+---
+title: Where MooriShell ends and upstream begins
+slug: where-moorishell-ends-and-upstream-begins
+description: Why a modular desktop needs explicit ownership boundaries and reversible configuration.
+date: 2026-11-17
+updatedAt: 2026-11-17
+author: MooriShell contributors
+category: 05 — Architecture & Design
+tags: [architecture, ownership, configuration]
+coverImage: ''
+featured: false
+draft: false
+---
+
+A coherent desktop does not require one project to own every part of it. MooriShell&apos;s architecture draws a line between the integration layer it can maintain and the upstream tools it depends on.
+
+## Own the glue, not the tools
+
+The repository can own its defaults, scripts, manifests, tests, and documentation. Komorebi owns its window-management behavior; YASB owns its bar framework; WezTerm owns its terminal runtime. MooriShell can select documented integration points without patching upstream binaries or taking over their release cycles.
+
+That boundary also helps users understand where a behavior comes from and where to report a problem.
+
+## Configuration belongs to people
+
+Versioned defaults are not live machine state. The architecture decision for configuration keeps templates in the repository while user overrides, backups, logs, and provisioning state stay outside it. Secrets belong in a credential provider, not in a checked-in config file.
+
+Before modifying an existing application configuration, a future provisioning flow must preserve the original, record what it changed, and notice if a user later edits the deployed file. Restore and uninstall should touch only files the project can identify as its own—and only when doing so will not erase user work.
+
+## A small contract
+
+```text
+Upstream owns: application code, runtime behavior, releases, licenses
+MooriShell owns: integration defaults, automation, docs, validation
+User owns: local overrides, credentials, machine-specific state
+```
+
+This is policy, not a claim that a complete backup-and-restore implementation already exists. That lifecycle is still a roadmap item.
+
+## Why the distinction pays off
+
+Modules can be optional, replaced, or removed without turning the whole desktop into a fork. It becomes easier to test each boundary and to say exactly what is supported. Most importantly, the user keeps control over the environment they already have.
+
+The current decisions are recorded in [ADR-004](https://github.com/openanaffa/moorishell/blob/main/docs/architecture/adr/0004-ownership-boundaries.md) and [ADR-006](https://github.com/openanaffa/moorishell/blob/main/docs/architecture/adr/0006-configuration-ownership-backup-restore-uninstall.md).

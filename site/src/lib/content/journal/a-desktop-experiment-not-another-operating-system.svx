@@ -1,0 +1,48 @@
+---
+title: A desktop experiment, not another operating system
+slug: a-desktop-experiment-not-another-operating-system
+description: What MooriShell is exploring on Windows, and the line it does not cross.
+date: 2026-11-17
+updatedAt: 2026-11-17
+author: MooriShell contributors
+category: 01 — Field Notes
+tags: [project scope, Windows, open source]
+coverImage: ''
+featured: true
+draft: false
+---
+
+MooriShell starts with a simple boundary: Windows remains the host operating system. The project explores how a collection of existing tools might create a more deliberate, keyboard-driven desktop without pretending to replace the platform underneath.
+
+## A workspace assembled from tools
+
+The current exploration includes Komorebi for tiling and workspaces, YASB for a status bar, Shelled as a shell experience experiment, and WezTerm as a terminal integration target. Each remains an upstream project with its own code, releases, and license.
+
+That distinction matters. MooriShell owns the configuration, documentation, automation, and design it authors. It does not own the behavior of those applications or promise that every combination works on every Windows machine.
+
+> This is an early experiment, not a stable distribution or an installer.
+
+## What is implemented—and what is not
+
+Komorebi and YASB are installed in the maintainer&apos;s experimental environment, with configuration in progress. Shelled has a development-mode experiment. The project does not yet have a supported installer, a validated compatibility matrix, or a completed setup-and-recovery path.
+
+The roadmap puts architecture and scope first. Provisioning is a scaffold, and the Windows baseline still needs reproducible validation. Presence in the repository is not the same as a working, supported feature.
+
+## A useful boundary
+
+A desktop should feel cohesive without making its parts inseparable. That means clear ownership, inspectable configuration, explicit updates, and a way to preserve user changes. The principles are drafted in the repository&apos;s architecture decisions; the implementation still has to earn them.
+
+```text
+Windows host
+  └─ MooriShell-owned configuration and automation
+      ├─ Shelled · Komorebi · YASB · WezTerm
+      └─ Optional: WSL2 · Docker · developer toolchain
+```
+
+This map describes project direction. Optional layers are not prerequisites, and the diagram is not a tested compatibility matrix.
+
+## The next test
+
+The immediate work is still M1: define a Windows baseline from reproducible evidence. Until that happens, the honest description is an open experiment with a clear direction—not a finished desktop environment.
+
+[Read the roadmap](https://github.com/openanaffa/moorishell/blob/main/docs/roadmap.md) or follow [issue #1](https://github.com/openanaffa/moorishell/issues/1).
