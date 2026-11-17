@@ -1,77 +1,42 @@
 # ADR-004: Ownership boundaries for upstream tools
 
 **Status:** Accepted  
-**Date:** 2026-11-16  
+**Date:** 2026-11-17  
 **Deciders:** MooriShell project maintainer
 
 ## Context
-
-MooriShell integrates multiple upstream tools (Shelled, Komorebi, YASB, WezTerm, WSL2, Docker, package managers, toolchains). The roadmap (M1) requires explicit ownership boundaries. The contributing guide states: "Keep MooriShell-specific changes separate from upstream defaults" and "Do not copy or redistribute upstream source code, assets or binaries without checking the applicable license and attribution requirements."
+MooriShell configures upstream applications but must not blur responsibility for their code, releases, settings, and runtime behavior.
 
 ## Decision
 
 ### Ownership model
-
-| What | Owner | MooriShell responsibility |
+| Area | Owner | MooriShell responsibility |
 |---|---|---|
-| Upstream executables and source code | Upstream project | None; link to official install documentation |
-| Upstream release cycles and licenses | Upstream project | None; document versions used |
-| MooriShell configuration files | MooriShell | Author, maintain, version |
-| MooriShell scripts and automation | MooriShell | Author, maintain, test |
-| MooriShell documentation | MooriShell | Author, maintain |
-| User machine-specific settings | User | None; MooriShell does not commit them |
-| User secrets and credentials | User | None; never stored in repository |
+| Upstream executables, source, assets, releases, licenses | Upstream project | Select documented versions/sources; respect upstream terms |
+| MooriShell defaults, scripts, manifests, docs, tests, branding | MooriShell | Author, version, validate, maintain |
+| Installed application runtime and native behavior | Upstream application | Configure only through documented interfaces |
+| User edits and machine-specific settings | User | Preserve; never commit or silently overwrite |
+| Secrets and credentials | User / credential provider | Never collect into repository or plain-text config |
+| Package installation/update operation | One declared source per package | Invoke only the source declared in the manifest; see ADR-005 |
 
-### What MooriShell does NOT do
+### Application-level ownership
+- **Shelled:** upstream owns the shell host; MooriShell owns its integration settings and launch instructions.
+- **Komorebi:** upstream owns window-management behavior; MooriShell owns its selected keybinding/layout profile. Avoid competing shortcut definitions with PowerToys.
+- **YASB:** upstream owns the bar framework; MooriShell owns its selected widgets/theme configuration.
+- **WezTerm:** upstream owns the terminal; MooriShell owns its terminal profile and integration defaults.
+- **PowerToys, WSL2, Docker, and developer applications:** optional integrations; MooriShell owns only explicit configuration/adapters, not their lifecycle beyond documented setup.
 
-- Modify upstream source code or redistribute upstream binaries without license review.
-- Fork upstream projects unless explicitly decided and licensed.
-- Store user credentials, private keys, personal paths, or machine-specific secrets in the repository.
-- Assume ownership of upstream application updates (user controls when to upgrade upstream tools).
-
-### Configuration ownership
-
-MooriShell owns its own configuration files stored in `configs/`. These files:
-- Reference upstream applications by version where known.
-- Are separate from upstream default configurations.
-- Document required dependencies and installation steps.
-- Are tested before being considered complete.
-
-### Startup and lifecycle ownership
-
-MooriShell documents how each upstream component is started and stopped:
-- Shelled: launched manually in dev mode (SHELL_DEV_MODE=1); not registered as Winlogon shell.
-- Komorebi: launched by user or automation; manages window tiling.
-- YASB: launched by user or automation; renders status bar.
-- WezTerm: launched via Shelled launcher or user action; terminal emulator.
-
-MooriShell does not supervise or restart upstream processes automatically in M1.
+### Runtime and lifecycle boundary
+MooriShell may install or update a package only through its declared source and only when the user invokes the operation. It may start core applications through documented startup mechanisms once M3 defines and tests them. It does not patch upstream binaries, silently update upstream tools, or promise process supervision/restart until implemented and validated.
 
 ## Consequences
-
-### Positive
-
-- Clear separation between MooriShell-owned and upstream-owned code.
-- Users can remove MooriShell configuration without affecting upstream installations.
-- Upstream updates are controlled by the user, not forced by MooriShell.
-
-### Negative
-
-- Users must manually launch components (Shelled, Komorebi, YASB, WezTerm) until M2 provisioning automates startup.
-- No automatic restart if a component crashes.
+- Upstream projects retain control of their code and release cycles.
+- MooriShell can version a coherent configuration without claiming ownership of the configured application.
+- Each integration needs an explicit configuration path, startup contract, and recovery behavior before it is considered complete.
 
 ## Alternatives considered
-
-### Fork and modify upstream tools
-
-Rejected. Violates the principle of respecting upstream projects and adds maintenance burden.
-
-### Make MooriShell responsible for upstream updates
-
-Rejected. Users should control their own tool versions; MooriShell documents versions but does not enforce them.
+- **Fork upstream tools by default:** Rejected due to maintenance and licensing burden.
+- **Let MooriShell update all upstream tools automatically:** Rejected; updates are explicit and use the declared package source.
 
 ## Related
-
-- ADR-003: Integration tier classification
-- ADR-005: Package-manager ownership policy
-- Roadmap M1: https://github.com/openanaffa/moorishell/issues/1
+ADR-003, ADR-005, ADR-006; Roadmap M1: https://github.com/openanaffa/moorishell/issues/1
