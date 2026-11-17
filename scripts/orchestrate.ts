@@ -153,12 +153,12 @@ function doctor(): void {
 }
 
 function worktreeAction(action: "New" | "Remove", values: string[]): void {
-	const worktreeName = values[0];
-	if (!worktreeName) throw new Error(`${action} requires a worktree name.`);
-	const branch = values[1];
-	const scriptArgs = [action, worktreeName];
-	if (branch !== undefined) scriptArgs.push("-Branch", branch);
-	run(powershell("scripts/worktree.ps1", scriptArgs));
+  const worktreeName = values[0];
+  if (!worktreeName) throw new Error(`${action} requires a worktree name.`);
+  const branch = values[1];
+  const scriptArgs = [action, worktreeName];
+  if (typeof branch === "string") scriptArgs.push("-Branch", branch);
+  run(powershell("scripts/worktree.ps1", scriptArgs));
 }
 
 try {
