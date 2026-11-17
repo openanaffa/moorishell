@@ -1,57 +1,36 @@
 # ADR-001: Product scope and core user journeys
 
 **Status:** Accepted  
-**Date:** 2026-11-16  
+**Date:** 2026-11-17  
 **Deciders:** MooriShell project maintainer
 
 ## Context
-
-MooriShell is in early experimental stage (M0 complete). The roadmap requires M1 to define product scope before M2 provisioning can begin. The existing README and architecture overview list several tools (Shelled, Komorebi, YASB, WezTerm, WSL2, Docker, Scoop/WinGet/Chocolatey, mise, Bun/Node.js/Rust/Go/C/C++) but do not yet define which are core vs optional vs experimental, nor what a coherent user journey looks like.
+MooriShell is an experimental Windows-native workspace assembled from upstream applications. M1 defines its product boundary and the workflows later provisioning and desktop integration must support.
 
 ## Decision
+MooriShell integrates existing Windows applications through its own configuration, automation, and documentation. It does not replace Windows, reimplement upstream tools, or claim ownership of their binaries or source.
 
-MooriShell is a **Windows-native desktop workspace** that assembles existing applications into a coherent, keyboard-driven environment. It does not replace Windows and does not reimplement upstream tools.
+### Primary user journeys
+1. **Enter a coherent desktop:** Start Shelled in development mode alongside Explorer, with Komorebi managing tiling/workspaces, YASB providing status, and WezTerm available as the terminal.
+2. **Navigate by keyboard:** Launch/focus applications, move between windows, and switch workspaces using documented shortcuts.
+3. **Configure the workspace:** Change MooriShell defaults and application settings without editing upstream binaries or losing user customizations.
+4. **Build a developer workspace:** Reproduce selected runtimes, compilers, Git/GitHub tools, and supporting applications through an explicit developer profile (M4); Linux/container environments remain opt-in (M5).
+5. **Maintain or remove the setup:** Apply updates safely, back up affected configuration, restore prior state, and remove only MooriShell-managed changes.
 
-### Core user journeys
-
-1. **Log in to a coherent desktop:** Shelled is the shell host; Komorebi manages tiling/workspaces; YASB provides the status bar; WezTerm is the terminal. After sign-in, the user should land in a usable tiled desktop with status bar and quick terminal access.
-2. **Launch and manage terminal sessions:** WezTerm is launched via Shelled launcher or keyboard shortcut; Komorebi tiles it; user can switch focus with Alt+Arrows and workspaces with Alt+1-9 / Alt+Shift+1-9.
-3. **Configure and customize:** User edits MooriShell-owned configuration files (not upstream binaries) to change keybindings, layout rules, status bar widgets, and terminal profiles.
-4. **Install and update tools:** User installs core tools via package manager (policy defined in ADR-005); optional tools are opt-in.
-5. **Recover or remove:** User can run uninstall/restore to revert MooriShell-owned configuration without touching upstream tools or personal data.
-
-### Non-goals for M1
-
-- Replacing Windows Explorer as the system shell (Winlogon `Shell` registry change).
-- Bundling upstream binaries.
-- Supporting WSL2/Docker container workspaces (M5).
-- Building new applications or forking upstream projects.
+### Scope boundaries
+- Core desktop: Shelled (development-mode host), Komorebi, YASB, and WezTerm.
+- Optional integrations: PowerToys, WSL2, Docker, and supporting productivity applications.
+- Developer tooling is a separate profile, not a prerequisite for the core desktop.
+- Replacing Explorer through Winlogon, bundling upstream binaries, and forking upstream projects are out of scope unless a later ADR explicitly changes this.
 
 ## Consequences
-
-### Positive
-
-- Clear boundary between MooriShell-owned configuration and upstream tools.
-- Users can adopt incrementally (e.g., just Komorebi + YASB without Shelled as shell).
-- Installation/uninstallation is bounded and reversible.
-
-### Negative
-
-- Shelled is not yet a production shell replacement; users must launch it manually (dev mode) rather than having it auto-start via Winlogon.
-- Some integration gaps (e.g., WezTerm launch path) require manual configuration until M2 provisioning exists.
+- The core desktop can be adopted independently of developer tooling and Linux/container workflows.
+- Shelled remains in development mode; no Winlogon shell registration or automatic recovery is promised in M1.
+- M2/M3 must implement and validate provisioning and lifecycle behavior before the workflow can be described as reproducible.
 
 ## Alternatives considered
-
-### Replace Windows Explorer as shell (Winlogon)
-
-Rejected for M1. Shelled is not yet stable enough to be the default shell; doing so would break Komorebi/Yasb Explorer-dependent integration and risk locking users out. Real-shell registration is deferred to a later milestone after dev-mode evaluation.
-
-### Build a new window manager from scratch
-
-Rejected. Komorebi already provides tiling; integrating it aligns with the principle of integrating upstream tools rather than duplicating them.
+- **Replace Explorer through Winlogon:** Rejected for the experimental stage because it increases recovery risk and may break Explorer-dependent integrations.
+- **Build a new window manager or terminal:** Rejected because the project is integration-first.
 
 ## Related
-
-- ADR-003: Integration tier classification
-- ADR-004: Ownership boundaries
-- Roadmap M1: https://github.com/openanaffa/moorishell/issues/1
+ADR-003, ADR-004, ADR-005, ADR-006; Roadmap M1: https://github.com/openanaffa/moorishell/issues/1
