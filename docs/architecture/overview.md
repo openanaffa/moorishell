@@ -1,88 +1,56 @@
 # MooriShell Architecture — Initial Overview
 
-**Status:** Exploratory. This document records the intended boundaries, not a completed implementation.
+**Status:** Exploratory. This document records current decisions and implementation boundaries, not a completed implementation.
 
 ## Objective
-
-MooriShell is a Windows-native integration and configuration project. It aims to assemble a cohesive desktop workflow from existing Windows applications and open-source tools.
-
-It is not intended to replace the Windows operating system, nor to claim ownership of the upstream tools it configures.
+MooriShell is a Windows-native integration and configuration project. It assembles a keyboard-driven desktop workflow from existing applications and open-source tools. It does not replace Windows or reimplement upstream applications.
 
 ## Conceptual layers
-
 | Layer | Responsibility | Tool | Integration tier |
 |---|---|---|---|
-| Shell experience | Entry points and desktop interaction | Shelled | Core |
-| Window management | Tiling, layouts and workspaces | Komorebi | Core |
-| Status and system information | Desktop status bar | YASB | Core |
+| Shell experience | Desktop entry point | Shelled (development mode) | Core |
+| Window management | Tiling, layouts, workspaces | Komorebi | Core |
+| Status and system information | Status bar | YASB | Core |
 | Terminal | Terminal interface and profiles | WezTerm | Core |
-| Linux development environment | Linux userland and developer workflows | WSL2 | Optional |
-| Containers | Containerized development workloads | Docker | Optional |
-| Software provisioning | Installing and updating Windows tools | Scoop / WinGet / Chocolatey | Experimental (under evaluation) |
-| Runtime provisioning | Selecting language/runtime versions | mise | Experimental (under evaluation) |
-| Developer toolchains | Language and compiler toolchains | Bun, Node.js, Rust, Go, C/C++ | Experimental (under evaluation) |
-
-The exact integration contracts and ownership boundaries are documented in `docs/architecture/adr/`. See the [roadmap](roadmap.md) for the planned decision and implementation sequence.
+| Windows utilities | Launcher and supporting utilities | PowerToys | Optional |
+| Linux development environment | Linux userland | WSL2 | Optional |
+| Containers | Containerized workloads | Docker | Optional |
+| Developer toolchain | Runtimes, compilers, Git/GitHub tools | Developer profile | Optional |
+| Productivity applications | Knowledge and editor integrations | Obsidian, Zed, VS Code, GitHub Desktop | Optional |
 
 ## Repository-owned responsibilities
+MooriShell owns its original documentation, branding, configuration templates, dependency catalog, automation, and tests. Upstream projects retain ownership of their executables, source, assets, release cycles, and licenses. The repository MIT license applies only to original MooriShell materials.
 
-MooriShell should own:
+## Configuration model
+- Versioned defaults live in configs/<app>/.
+- Deployed application files live at documented native application paths.
+- User and machine-specific overrides, backups, logs, and provisioning state live outside the repository, under local application data or an application-specific location.
+- Secrets remain in Windows Credential Manager, a DPAPI-backed store, or the application's secret store; never in the repository or plain-text MooriShell configuration.
+- Updates and uninstall use a local state manifest and hash checks. Modified user files are preserved, not silently overwritten or deleted.
 
-- Its documentation and design identity.
-- Configuration files and documented adaptations.
-- Setup, validation and maintenance scripts.
-- Dependency declarations and compatibility guidance.
-- Tests or checks for MooriShell-owned automation.
-
-Upstream projects should own their respective executables, source code, release cycles and licenses unless MooriShell explicitly maintains a separately licensed fork.
-
-Original MooriShell materials are licensed under the MIT License. That license does not replace or modify the licenses of upstream applications, dependencies, assets, or binaries.
-
-## Configuration strategy
-
-MooriShell keeps configurations modular and attributable to the application they configure. Shared defaults are documented; machine-specific values and secrets are not committed.
-
-Configuration ownership:
-
-- **MooriShell-owned configuration** lives in `configs/` and is versioned in the repository.
-- **Application defaults** live in the upstream application's install directory and are owned by the upstream project.
-- **User customizations** and **machine-specific overrides** live outside the repository and are never committed.
-- **Secrets** (tokens, keys, passwords, credentials) are never stored in the repository.
-
-Configuration rules:
-
-- Where each application's configuration lives: documented in `configs/`; MooriShell-owned files are separate from upstream defaults.
-- Which tool is authoritative when two tools overlap: the application that owns the functionality owns its configuration; MooriShell does not override upstream defaults.
-- How configuration is backed up and restored: users back up machine-specific overrides and secrets separately; MooriShell-owned configuration is versioned in the repository.
-- How updates are applied and validated: users apply configuration changes manually; MooriShell does not automate updates in M1.
-- How users can disable or remove an integration: MooriShell removes only its own configuration files; upstream applications are not removed.
+See ADR-006 for the full configuration lifecycle.
 
 ## Package-manager policy
+MooriShell does not mandate one global package manager. Each managed package has exactly one authoritative source in the dependency manifest. Prefer Scoop for suitable user-scoped portable tools, WinGet for Windows-native applications/installers, and direct official releases when more appropriate. Chocolatey is an explicit exception, not a default. mise may own selected language runtimes. Never install the same package through multiple managers.
 
-Scoop, WinGet and Chocolatey are under evaluation. **No package manager is selected in M1.** MooriShell does not install or manage packages automatically.
-
-Avoid managing the same application through multiple package managers unless there is a documented reason. A future tool manifest should identify the chosen source and update mechanism for each dependency.
+See ADR-005 for the manifest contract and source-selection rules.
 
 ## Reliability and safety
+Provisioning must be explicit, inspectable, idempotent, and reversible. It must detect existing installations, preserve user configuration, and report unsupported/unresolved packages instead of treating placeholders as success.
 
-Setup automation should be incremental, inspectable and reversible where practical. It should not silently overwrite user configuration or remove existing applications.
+## Decided architecture
+- Product scope and primary journeys: ADR-001.
+- Windows 11 x64 baseline policy; exact tested build/hardware floor pending evidence: ADR-002.
+- Core, optional, and experimental integration tiers: ADR-003.
+- Upstream and MooriShell ownership boundaries: ADR-004.
+- One authoritative package source per managed dependency: ADR-005.
+- Configuration ownership, backup, restore, and uninstall lifecycle: ADR-006.
 
-## Open architecture decisions
+## Deferred decisions
+- Exact supported Windows build and minimum hardware: record after reproducible host validation.
+- Per-package manager/source assignments and install detection: M2.
+- Configuration destination mapping and state-manifest implementation: M2.
+- Startup, supervision, restart, and recovery behavior for core desktop applications: M3.
+- WSL2 distro baseline and container filesystem conventions: M5.
 
-### Decided (M1)
-
-- **Scope**: Shelled, Komorebi, YASB, WezTerm are core; WSL2 and Docker are optional; package managers and toolchains are experimental; Winlogon shell replacement is out of scope (ADR-003).
-- **Windows baseline**: Windows 11 64-bit; Shelled runs in dev mode alongside Explorer (ADR-002).
-- **Ownership boundaries**: MooriShell owns configuration files; upstream tools own their executables and release cycles (ADR-004).
-- **Package-manager policy**: No package manager selected in M1; no automatic package management (ADR-005).
-- **Configuration ownership**: MooriShell owns `configs/`; user customizations and secrets live outside the repository (ADR-006).
-
-### Still open
-
-- How Komorebi and YASB are started, supervised and restarted (M2 provisioning).
-- The relationship between Windows, WSL2 and Docker workspaces (M5).
-- Package-manager selection and tool manifest (M2 provisioning).
-
-Update this document as implementation decisions are validated.
-
-Update this document as implementation decisions are validated.
+Update this overview when implementation evidence changes these decisions.
