@@ -1,0 +1,58 @@
+# Dependency catalog for MooriShell
+#
+# Each entry represents a dependency that MooriShell configures or integrates
+# with. Fields:
+#   id:            Stable package identifier used in scripts and configs.
+#   name:          Human-readable name.
+#   source:        Official download source URL.
+#   version_policy: pinned | latest | range
+#   version:       Pinned version string when policy is "pinned".
+#   install_scope: user | machine (installation scope for the package).
+#   package_manager: scoop | winget | chocolatey | direct | none
+#                    "direct" means download from source URL manually.
+#   install_method: package_manager | direct_download | portable
+#   category:      shell | terminal | window_manager | status_bar | runtime | other
+#
+# NOTE: As of M1, no package manager is selected (see ADR-005). All entries
+# use "direct" install_method, meaning users download from the source URL
+# manually or via their preferred package manager.
+
+- id: shelled
+  name: Shelled
+  source: https://github.com/tecno14/shelled
+  version_policy: pinned
+  version: "0e032ecd07ff6f6a92b7d2fe7cc43cf6c65b8d2b"
+  install_scope: user
+  package_manager: direct
+  install_method: direct_download
+  category: shell_host
+
+- id: wezterm
+  name: WezTerm
+  source: https://github.com/wez/wezterm
+  version_policy: pinned
+  version: "20240203-110809-5046fc22"
+  install_scope: user
+  package_manager: direct
+  install_method: direct_download
+  category: terminal
+
+- id: komorebi
+  name: Komorebi
+  source: https://github.com/LGUG2Z/komorebi
+  version_policy: pinned
+  version: "0.1.41"
+  install_scope: user
+  package_manager: direct
+  install_method: direct_download
+  category: window_manager
+
+- id: yasb
+  name: YASB
+  source: https://github.com/amnweb/yasb
+  version_policy: pinned
+  version: "2.0.9"
+  install_scope: user
+  package_manager: direct
+  install_method: direct_download
+  category: status_bar
