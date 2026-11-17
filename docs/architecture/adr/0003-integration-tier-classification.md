@@ -1,71 +1,52 @@
 # ADR-003: Integration tier classification
 
 **Status:** Accepted  
-**Date:** 2026-11-16  
+**Date:** 2026-11-17  
 **Deciders:** MooriShell project maintainer
 
 ## Context
-
-MooriShell integrates multiple upstream tools. The roadmap (M1) requires classifying integrations as core, optional, experimental, or out-of-scope. The README already lists several tools with status annotations, but they are not yet formally classified.
+MooriShell combines desktop components, developer tools, package managers, and optional workspace applications. Optional tooling must not become a hidden core dependency.
 
 ## Decision
 
 ### Tier definitions
+| Tier | Meaning |
+|---|---|
+| **Core** | Required for the primary desktop workflow; receives maintained configuration and validation. |
+| **Optional** | User opt-in; core functionality remains usable without it. |
+| **Experimental** | Evaluated or supported only in a limited profile; may change or be removed. |
+| **Out of scope** | Not provided or managed by MooriShell. |
 
-| Tier | Meaning | Example (current) |
+### Current assignments
+| Component | Tier | Responsibility |
 |---|---|---|
-| **Core** | Essential to the MooriShell experience; configured and documented by MooriShell; included in provisioning. | Shelled, Komorebi, YASB, WezTerm |
-| **Optional** | Useful but not required; user opts in; documented setup provided. | WSL2, Docker |
-| **Experimental** | Under evaluation; may change or be removed without notice; no production support. | Scoop/WinGet/Chocolatey, mise, Bun/Node.js/Rust/Go/C/C++ toolchains |
-| **Out of scope** | Explicitly not part of MooriShell. | Winlogon `Shell` registry changes (real shell replacement), upstream tool forks |
-
-### Tier assignments
-
-| Tool | Tier | Rationale |
-|---|---|---|
-| Shelled | Core | Shell host; central to the MooriShell experience |
-| Komorebi | Core | Tiling and window management |
+| Shelled | Core | Desktop entry point, development mode only |
+| Komorebi | Core | Tiling and workspaces |
 | YASB | Core | Status bar |
-| WezTerm | Core | Terminal emulator |
-| WSL2 | Optional | Linux userland; not required for core Windows desktop |
-| Docker | Optional | Container workloads; not required for core Windows desktop |
-| Scoop / WinGet / Chocolatey | Experimental | Package managers under evaluation; no ownership policy yet (see ADR-005) |
-| mise | Experimental | Runtime version manager under evaluation |
-| Bun, Node.js, Rust, Go, C/C++ | Experimental | Developer toolchains; covered by M4 |
-| Winlogon `Shell` replacement | Out of scope | Shelled runs in dev mode; real shell replacement is deferred |
+| WezTerm | Core | Terminal |
+| PowerToys | Optional | Windows utilities/launcher; avoid overlapping ownership with Komorebi |
+| WSL2 | Optional | Linux userland |
+| Docker | Optional | Container workloads |
+| Obsidian and other knowledge apps | Optional | User-selected productivity layer |
+| Zed, VS Code, GitHub Desktop | Optional | Developer GUI tools |
+| Scoop / WinGet | Provisioning backends | Per-package ownership governed by ADR-005 |
+| Chocolatey | Experimental backend | Explicit exception only; not a default source |
+| mise | Optional developer profile | Runtime version management |
+| Python, Node.js, Bun, Rust, Go, Lua, C/C++ | Developer profile | M4 toolchain scope; not core desktop dependencies |
+| Cygwin | Experimental | Evaluate only if native tools or WSL2 do not meet a required workflow |
+| Winlogon shell replacement | Out of scope | No Explorer replacement |
 
 ### Classification rules
-
-1. **Core** integrations ship with documented configuration, startup, and recovery behavior.
-2. **Optional** integrations require explicit user opt-in; their absence does not degrade core functionality.
-3. **Experimental** integrations may change behavior, package names, or be removed without deprecation notice.
-4. **Out of scope** items are explicitly not the responsibility of MooriShell.
+1. Core integrations need documented install/configuration/startup and recovery behavior before being called supported.
+2. Optional integrations require explicit opt-in and must be independently removable.
+3. Experimental components must not be required by core setup.
+4. Package managers are provisioning mechanisms, not user-facing integrations.
+5. A tier is a project commitment level, not a claim that every version/platform combination has been tested.
 
 ## Consequences
-
-### Positive
-
-- Users know which components are stable vs experimental.
-- Core integrations receive priority for documentation and testing.
-- Out-of-scope items (e.g., Winlogon replacement) are explicitly ruled out, preventing scope creep.
-
-### Negative
-
-- Users who want real-shell replacement must wait for a future milestone.
-- Experimental package managers may change behavior between versions.
-
-## Alternatives considered
-
-### Make all integrations "core"
-
-Rejected. WSL2, Docker, and package managers are not required for the core desktop workflow and would add unnecessary complexity to M2 provisioning.
-
-### Make all integrations "optional"
-
-Rejected. Shelled, Komorebi, YASB, and WezTerm are the core experience; making them optional would make MooriShell meaningless.
+- The desktop can be provisioned without WSL2, Docker, PowerToys, or developer toolchains.
+- PowerToys and Komorebi may overlap; MooriShell must document which tool owns each shortcut/behavior.
+- Developer tools can be provisioned as a separate opt-in profile.
 
 ## Related
-
-- ADR-001: Product scope and core user journeys
-- ADR-005: Package-manager ownership policy
-- Roadmap M1: https://github.com/openanaffa/moorishell/issues/1
+ADR-001, ADR-004, ADR-005; Roadmap M1: https://github.com/openanaffa/moorishell/issues/1
