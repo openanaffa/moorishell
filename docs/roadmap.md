@@ -201,7 +201,7 @@ Key outputs:
 
 ## Current inventory (2026-11-17)
 
-- M1 has six ADRs and an updated architecture overview in the repository. GitHub issue #1 has only its first two task checkboxes checked; the remaining five tasks and both exit criteria are unchecked. Review the ADRs for completeness, especially ownership, package policy, and configuration lifecycle, before closing M1.
+- M1 has six revised ADRs and an aligned architecture overview. Issue #1 currently has its first three tasks checked. The Windows baseline checkbox needs test evidence: ADR-002 defines a Windows 11 x64 policy but deliberately does not claim a tested build floor or minimum hardware. Package source assignments and configuration deployment mappings are M2 implementation work; do not mark them validated merely because the policy is documented.
 - M2 has `configs/packages.yaml` and an initial `scripts/install.ps1` scaffold. The script currently fails at startup because it redeclares the common `-Verbose` parameter. Its package download/install behavior is a placeholder, restore/uninstall are incomplete, and the clean-machine and recovery exit criteria have not been validated. GitHub issue #2 remains entirely unchecked.
 - M3 has Shelled source customizations in the submodule (quick-launch/battery UI, hotkey bridge, safe-mode command allow-list) and prebuilt Komorebi/WezTerm binaries were used during local experiments. This does not yet establish versioned MooriShell configs, lifecycle/recovery behavior, or the multi-display validation required by issue #3.
 - M4–M8 remain planned; no milestone completion evidence is recorded in the repository inventory.
