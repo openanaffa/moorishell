@@ -7,6 +7,9 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  server: {
+    allowedHosts: ["sb-4tbk3rm6xt5h.vercel.run"],
+  },
   plugins: [
     tailwindcss(),
     sveltekit({
