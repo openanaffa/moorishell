@@ -1,12 +1,12 @@
 [submodule "shelled"]
 	path = src/shelled
-	url = F:/sources/shelled
+	url = https://github.com/tecno14/shelled.git
 [submodule "wezterm"]
 	path = src/wezterm
-	url = F:/sources/wezterm
+	url = https://github.com/wez/wezterm.git
 [submodule "komorebi"]
 	path = src/komorebi
-	url = F:/sources/komorebi
+	url = https://github.com/LGUG2Z/komorebi.git
 [submodule "yasb"]
 	path = src/yasb
-	url = F:/sources/yasb
+	url = https://github.com/amnweb/yasb.git
