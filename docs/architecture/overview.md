@@ -38,6 +38,16 @@ See ADR-005 for the manifest contract and source-selection rules.
 ## Reliability and safety
 Provisioning must be explicit, inspectable, idempotent, and reversible. It must detect existing installations, preserve user configuration, and report unsupported/unresolved packages instead of treating placeholders as success.
 
+## Current shell experience experiment
+The Shelled experiment adds MooriShell branding, a WezTerm quick-launch button,
+battery status, Komorebi-style workspace/window shortcuts, and a Quick Settings
+flyout for launcher, terminal, power settings, and network settings. WezTerm is
+invoked by command name through Shelled's allow-listed bridge rather than a
+machine-specific release path. This work is on the Shelled feature branch
+`feature/shell-quick-settings` at commit `23b9ba2`; it is not yet part of the
+parent repository's pinned submodule commit. Development mode remains the only
+validated use mode; Explorer/Winlogon is not modified.
+
 ## Decided architecture
 - Product scope and primary journeys: ADR-001.
 - Windows 11 x64 baseline policy; exact tested build/hardware floor pending evidence: ADR-002.

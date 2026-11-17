@@ -99,6 +99,11 @@ Key outputs:
 
 **Gate:** The desktop workflow is usable after sign-in, documented, and recoverable if an individual component fails.
 
+The current experimental Shelled UI work is documented in
+`docs/architecture/overview.md` and branch `feature/shell-quick-settings` in
+the Shelled source clone. It does not satisfy the M3 gate until that source is
+reachable from the parent submodule and lifecycle/display scenarios pass.
+
 [Track M3 tasks](https://github.com/openanaffa/moorishell/issues/3)
 
 ### M4 — Portable developer toolchain
@@ -203,9 +208,9 @@ Key outputs:
 
 - M1 has six revised ADRs and an aligned architecture overview. Issue #1 has the product journeys, integration tiers, ownership, package policy, configuration lifecycle, and ADR/overview tasks checked. The Windows baseline task and both exit criteria remain open. The maintainer identifies the development host as custom Tiny11/UUP Dump based on Windows 10 Pro N (build 22621) with selected Windows 11 components; the APIs report conflicting labels. It is an experimental, unsupported host and has not passed clean-install/recovery validation. Package source assignments and configuration deployment mappings are M2 implementation work; do not mark them validated merely because the policy is documented.
 - M2 has `configs/packages.yaml`, a constrained catalog parser/schema validator, an offline `-Plan`, and `scripts/test-install.ps1` safety checks. All current package entries are explicitly manual/unmanaged because exact artifact URLs, detection metadata, and SHA-256 values are not validated. Install is intentionally refused; restore/uninstall return nonzero without mutation until ADR-006 state/hash behavior is implemented. PowerShell syntax and safety tests pass locally. Clean-machine and recovery exit criteria remain unvalidated; issue #2 is still unchecked.
-- M3 has Shelled source customizations in the submodule (quick-launch/battery UI, hotkey bridge, safe-mode command allow-list) and prebuilt Komorebi/WezTerm binaries were used during local experiments. This does not yet establish versioned MooriShell configs, lifecycle/recovery behavior, or the multi-display validation required by issue #3.
+- M3 has Shelled source customizations for quick-launch/battery UI and the hotkey bridge, plus a MooriShell Quick Settings flyout and PATH-based WezTerm launch on Shelled feature branch `feature/shell-quick-settings` (commit `23b9ba2`). The focused Quick Settings test passes; SCSS and .NET solution builds pass. Three existing UI E2E tests still fail before app code because their jsdom helpers assign to Node's getter-only global `navigator`. This is a source-clone-only Shelled commit: the parent submodule remains pinned to the previous commit, and the feature commit is not available from the public canonical upstream. Versioned MooriShell configs, lifecycle/recovery, and multi-display validation remain incomplete.
 - M4–M8 remain planned; no milestone completion evidence is recorded in the repository inventory.
-- The submodule URLs in `.gitmodules` are local absolute `F:/sources/...` paths. This is not portable for a clean clone and must be fixed before setup can be reproducible.
+- `.gitmodules` now uses portable upstream HTTPS URLs. The Shelled customization commit remains only in the local Shelled clone and is not fetched from canonical upstream, so a fresh parent clone cannot yet materialize the customized UI. Publish the Shelled feature branch to a canonical MooriShell fork and update the submodule pointer only after the remote commit is reachable.
 
 ## Current next action
 
