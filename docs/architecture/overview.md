@@ -10,19 +10,19 @@ It is not intended to replace the Windows operating system, nor to claim ownersh
 
 ## Conceptual layers
 
-| Layer | Responsibility | Current direction |
-|---|---|---|
-| Shell experience | Entry points and desktop interaction | Shelled |
-| Window management | Tiling, layouts and workspaces | Komorebi |
-| Status and system information | Desktop status bar | YASB |
-| Terminal | Terminal interface and profiles | WezTerm |
-| Linux development environment | Linux userland and developer workflows | WSL2 |
-| Containers | Containerized development workloads | Docker |
-| Software provisioning | Installing and updating Windows tools | Scoop, WinGet, Chocolatey under evaluation |
-| Runtime provisioning | Selecting language/runtime versions | mise under evaluation |
-| Developer toolchains | Language and compiler toolchains | Bun, Node.js, Rust, Go, C/C++ |
+| Layer | Responsibility | Tool | Integration tier |
+|---|---|---|---|
+| Shell experience | Entry points and desktop interaction | Shelled | Core |
+| Window management | Tiling, layouts and workspaces | Komorebi | Core |
+| Status and system information | Desktop status bar | YASB | Core |
+| Terminal | Terminal interface and profiles | WezTerm | Core |
+| Linux development environment | Linux userland and developer workflows | WSL2 | Optional |
+| Containers | Containerized development workloads | Docker | Optional |
+| Software provisioning | Installing and updating Windows tools | Scoop / WinGet / Chocolatey | Experimental (under evaluation) |
+| Runtime provisioning | Selecting language/runtime versions | mise | Experimental (under evaluation) |
+| Developer toolchains | Language and compiler toolchains | Bun, Node.js, Rust, Go, C/C++ | Experimental (under evaluation) |
 
-The exact integration contracts and ownership boundaries remain to be designed. See the [roadmap](roadmap.md) for the planned decision and implementation sequence.
+The exact integration contracts and ownership boundaries are documented in `docs/architecture/adr/`. See the [roadmap](roadmap.md) for the planned decision and implementation sequence.
 
 ## Repository-owned responsibilities
 
@@ -40,19 +40,26 @@ Original MooriShell materials are licensed under the MIT License. That license d
 
 ## Configuration strategy
 
-The intended approach is to keep configurations modular and attributable to the application they configure. Shared defaults should be documented; machine-specific values and secrets should not be committed.
+MooriShell keeps configurations modular and attributable to the application they configure. Shared defaults are documented; machine-specific values and secrets are not committed.
 
-Before adding automation, define:
+Configuration ownership:
 
-- Where each application's configuration lives.
-- Which tool is authoritative when two tools overlap.
-- How configuration is backed up and restored.
-- How updates are applied and validated.
-- How users can disable or remove an integration.
+- **MooriShell-owned configuration** lives in `configs/` and is versioned in the repository.
+- **Application defaults** live in the upstream application's install directory and are owned by the upstream project.
+- **User customizations** and **machine-specific overrides** live outside the repository and are never committed.
+- **Secrets** (tokens, keys, passwords, credentials) are never stored in the repository.
+
+Configuration rules:
+
+- Where each application's configuration lives: documented in `configs/`; MooriShell-owned files are separate from upstream defaults.
+- Which tool is authoritative when two tools overlap: the application that owns the functionality owns its configuration; MooriShell does not override upstream defaults.
+- How configuration is backed up and restored: users back up machine-specific overrides and secrets separately; MooriShell-owned configuration is versioned in the repository.
+- How updates are applied and validated: users apply configuration changes manually; MooriShell does not automate updates in M1.
+- How users can disable or remove an integration: MooriShell removes only its own configuration files; upstream applications are not removed.
 
 ## Package-manager policy
 
-Scoop, WinGet and Chocolatey are being evaluated. No final ownership policy has been selected.
+Scoop, WinGet and Chocolatey are under evaluation. **No package manager is selected in M1.** MooriShell does not install or manage packages automatically.
 
 Avoid managing the same application through multiple package managers unless there is a documented reason. A future tool manifest should identify the chosen source and update mechanism for each dependency.
 
@@ -62,11 +69,20 @@ Setup automation should be incremental, inspectable and reversible where practic
 
 ## Open architecture decisions
 
-- Define the boundary between Shelled and the other desktop components.
-- Decide how Komorebi and YASB are started, supervised and restarted.
-- Define configuration backup and restore behavior.
-- Select the package-manager ownership policy.
-- Define the relationship between Windows, WSL2 and Docker workspaces.
-- Define the supported Windows baseline and compatibility matrix.
+### Decided (M1)
+
+- **Scope**: Shelled, Komorebi, YASB, WezTerm are core; WSL2 and Docker are optional; package managers and toolchains are experimental; Winlogon shell replacement is out of scope (ADR-003).
+- **Windows baseline**: Windows 11 64-bit; Shelled runs in dev mode alongside Explorer (ADR-002).
+- **Ownership boundaries**: MooriShell owns configuration files; upstream tools own their executables and release cycles (ADR-004).
+- **Package-manager policy**: No package manager selected in M1; no automatic package management (ADR-005).
+- **Configuration ownership**: MooriShell owns `configs/`; user customizations and secrets live outside the repository (ADR-006).
+
+### Still open
+
+- How Komorebi and YASB are started, supervised and restarted (M2 provisioning).
+- The relationship between Windows, WSL2 and Docker workspaces (M5).
+- Package-manager selection and tool manifest (M2 provisioning).
+
+Update this document as implementation decisions are validated.
 
 Update this document as implementation decisions are validated.
