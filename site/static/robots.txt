@@ -1,0 +1,4 @@
+# allow crawling everything by default
+User-agent: *
+Disallow:
+Sitemap: https://m7r.is-cool.dev/moorishell/sitemap.xml

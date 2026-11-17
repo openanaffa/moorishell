@@ -48,6 +48,7 @@ The repository is being organized around project-owned configuration and automat
 - `configs/` — MooriShell-owned configurations for integrated tools.
 - `docs/` — roadmap, architecture, setup, usage and troubleshooting.
 - `scripts/` - installation, setup, validation and maintenance automation.
+- `site/` - SvelteKit project website and MooriShell Journal; project status remains grounded in this README, the architecture docs, and the roadmap.
 - `toolchain/` - developer toolchain definitions and environment setup.
 - `Makefile` and `scripts/orchestrate.ts` - developer task orchestration using
   GNU Make, Bun, and the tools that own each build/test task.

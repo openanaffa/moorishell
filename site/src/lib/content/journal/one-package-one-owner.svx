@@ -1,0 +1,42 @@
+---
+title: One package, one owner
+slug: one-package-one-owner
+description: How MooriShell thinks about package managers when several can coexist on Windows.
+date: 2026-11-17
+updatedAt: 2026-11-17
+author: MooriShell contributors
+category: 03 — The Toolchain
+tags: [package management, Scoop, WinGet, Chocolatey]
+coverImage: ''
+featured: false
+draft: false
+---
+
+On a Windows machine, Scoop, WinGet, and Chocolatey may all be available. Letting each one install the same application creates duplicate files, competing updates, and ambiguous ownership. MooriShell&apos;s policy starts with one authoritative source per managed package.
+
+## A policy, not a compatibility claim
+
+Scoop is preferred when a user-scoped portable utility and a maintained manifest fit. WinGet is preferred for many Windows-native applications and installers. Chocolatey is an explicit exception, not the default. Direct official releases may fit when package-manager metadata does not.
+
+These are selection rules—not evidence that every package has a validated artifact or can be installed today.
+
+## When the source is not validated
+
+A package needs more than a homepage URL. The catalog calls for an exact artifact, version policy, detection details, and integrity data. Until that information is verified, an entry remains manual and unmanaged. The bootstrapper should refuse installation rather than quietly imply success.
+
+```yaml
+# Illustrative policy shape; current entries remain manual.
+package: example-tool
+source: one-authoritative-source
+status: manual
+```
+
+## Runtime versions are another concern
+
+mise may own selected language runtime versions in a future developer profile. That is distinct from application package management: the same runtime should not be versioned by two competing owners.
+
+## Keep the choice visible
+
+A dependency manifest should explain both the source and the update owner. Conflicts with pre-existing installs need to be surfaced for the user to resolve, not silently duplicated or migrated.
+
+The current policy is in [ADR-005](https://github.com/openanaffa/moorishell/blob/main/docs/architecture/adr/0005-package-manager-ownership-policy.md). Package assignments remain implementation work.
