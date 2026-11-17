@@ -47,8 +47,10 @@ The repository is being organized around project-owned configuration and automat
 - `branding/` — visual identity, logos and design tokens.
 - `configs/` — MooriShell-owned configurations for integrated tools.
 - `docs/` — roadmap, architecture, setup, usage and troubleshooting.
-- `scripts/` — installation, setup, validation and maintenance automation.
-- `toolchain/` — developer toolchain definitions and environment setup.
+- `scripts/` - installation, setup, validation and maintenance automation.
+- `toolchain/` - developer toolchain definitions and environment setup.
+- `Makefile` and `scripts/orchestrate.ts` - developer task orchestration using
+  GNU Make, Bun, and the tools that own each build/test task.
 
 Directories will be added as their contents become useful.
 
@@ -65,6 +67,8 @@ Directories will be added as their contents become useful.
 There is no supported one-command installation yet. The project is still defining its architecture and configuration layout.
 
 For now, follow the upstream installation instructions for each tool. MooriShell-specific setup instructions will be documented here as they become reproducible.
+
+For repository development tasks, see [the orchestration guide](docs/development/orchestration.md).
 
 ## Contributing
 
