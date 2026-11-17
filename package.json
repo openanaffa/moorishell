@@ -1,0 +1,26 @@
+{
+  "name": "moorishell-devtools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "help": "bun scripts/orchestrate.ts help",
+    "doctor": "bun scripts/orchestrate.ts doctor",
+    "plan": "bun scripts/orchestrate.ts plan",
+    "test": "bun scripts/orchestrate.ts test",
+    "test:safety": "bun scripts/orchestrate.ts test-safety",
+    "test:ui": "bun scripts/orchestrate.ts ui-focused",
+    "restore": "bun scripts/orchestrate.ts restore",
+    "ui:install": "bun scripts/orchestrate.ts ui-install",
+    "build": "bun scripts/orchestrate.ts build",
+    "styles": "bun scripts/orchestrate.ts styles",
+    "worktree:list": "bun scripts/orchestrate.ts worktree-list",
+    "worktree:new": "bun scripts/orchestrate.ts worktree-new",
+    "worktree:remove": "bun scripts/orchestrate.ts worktree-remove",
+    "check:types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.4",
+    "typescript": "5.9.3"
+  }
+}

@@ -49,8 +49,9 @@ The repository is being organized around project-owned configuration and automat
 - `docs/` — roadmap, architecture, setup, usage and troubleshooting.
 - `scripts/` - installation, setup, validation and maintenance automation.
 - `toolchain/` - developer toolchain definitions and environment setup.
-- `Makefile` and `scripts/orchestrate.ts` - developer task orchestration using
-  GNU Make, Bun, and the tools that own each build/test task.
+- `Makefile`, root `package.json`/`bun.lock`, and `scripts/orchestrate.ts` - a
+  pinned Bun developer toolchain and Make task surface that dispatch to the
+  tools that own each build/test task.
 
 Directories will be added as their contents become useful.
 

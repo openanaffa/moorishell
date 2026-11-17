@@ -23,6 +23,8 @@ System Volume Information/
 .env
 .env.*
 !.env.example
+!.env.example
+.env.local
 *.local
 
 # Build and package output
@@ -30,6 +32,7 @@ dist/
 build/
 out/
 .cache/
+node_modules/
 
 # Git Flow worktrees (sibling directories are preferred; keep any accidental
 # in-repository worktree scratch area out of version control).

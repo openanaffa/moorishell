@@ -1,37 +1,45 @@
 SHELL := pwsh.exe
 .SHELLFLAGS := -NoLogo -NoProfile -NonInteractive -Command
 
-.PHONY: help doctor plan test test-safety ui-focused build styles worktree-list worktree-new worktree-remove
+.PHONY: help doctor plan test test-safety ui-focused restore ui-install build styles worktree-list worktree-new worktree-remove
 
 help:
-	@bun run scripts/orchestrate.ts help
+	@bun run help
 
 doctor:
-	@bun run scripts/orchestrate.ts doctor
+	@bun run doctor
 
 plan:
-	@bun run scripts/orchestrate.ts plan
+	@bun run plan
 
 test:
-	@bun run scripts/orchestrate.ts test
+	@bun run test
 
 test-safety:
-	@bun run scripts/orchestrate.ts test-safety
+	@bun run test:safety
 
 ui-focused:
-	@bun run scripts/orchestrate.ts ui-focused
+	@bun run test:ui
 
 build:
-	@bun run scripts/orchestrate.ts build
+	@bun run build
+
+# Explicit dependency restore: may use network/NuGet sources.
+restore:
+	@bun run restore
+
+# Explicit UI dependency install: may use network; frozen lockfile required.
+ui-install:
+	@bun run ui:install
 
 styles:
-	@bun run scripts/orchestrate.ts styles
+	@bun run styles
 
 worktree-list:
-	@bun run scripts/orchestrate.ts worktree-list
+	@bun run worktree:list
 
 worktree-new:
-	@bun run scripts/orchestrate.ts worktree-new $(ARGS)
+	@bun run worktree:new -- $(ARGS)
 
 worktree-remove:
-	@bun run scripts/orchestrate.ts worktree-remove $(ARGS)
+	@bun run worktree:remove -- $(ARGS)
