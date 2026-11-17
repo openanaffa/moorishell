@@ -1,85 +1,63 @@
-# ADR-006: Configuration ownership, secrets, backup, restore, and uninstall behavior
+# ADR-006: Configuration ownership, backup, restore, and uninstall
 
-**Status:** Accepted  
-**Date:** 2026-11-16  
+**Status:** Accepted (lifecycle policy); deployment mapping required in M2  
+**Date:** 2026-11-17  
 **Deciders:** MooriShell project maintainer
 
 ## Context
-
-The roadmap (M1) requires defining "Configuration ownership, machine-specific overrides, secrets, backup, restore, and uninstall behavior." The architecture overview states: "Before adding automation, define: Where each application's configuration lives. Which tool is authoritative when two tools overlap. How configuration is backed up and restored. How updates are applied and validated. How users can disable or remove an integration."
+MooriShell needs versioned defaults while preserving user edits and machine-specific settings. The repository must not become the live configuration directory or a storage location for backups, logs, credentials, or machine state.
 
 ## Decision
 
-### Configuration ownership
-
-| Configuration type | Owner | Storage location | Committed to repo? |
+### Ownership and storage
+| Configuration/state | Owner | Location | Repository |
 |---|---|---|---|
-| MooriShell-owned configuration | MooriShell | `configs/` | Yes |
-| Application defaults | Upstream project | Application install directory | No |
-| User customizations | User | `configs/<app>.user.json` or equivalent | No |
-| Machine-specific overrides | User | Machine-local only | No |
-| Secrets (tokens, keys, passwords) | User | Outside repository | Never |
+| MooriShell default templates | MooriShell | configs/<app>/ | Committed |
+| Per-machine overrides and local state | User | %LOCALAPPDATA%/MooriShell/ | Never committed |
+| Deployed application config | User, with explicitly recorded MooriShell-managed baseline | Native application config path | Never repository source |
+| Application defaults/binaries | Upstream project | Upstream install/config locations | Not copied into MooriShell |
+| Backups and provisioning state | User / MooriShell tooling | %LOCALAPPDATA%/MooriShell/backups/ and state/ | Never committed |
+| Logs | User / MooriShell tooling | %LOCALAPPDATA%/MooriShell/logs/ | Never committed |
+| Secrets and credentials | User / credential provider | Windows Credential Manager, DPAPI-backed store, or application secret store | Never committed or stored in plain-text MooriShell config |
 
-### Machine-specific overrides
+Machine-specific overrides must live outside the repository. Do not place hostname-specific or user-specific files under configs/, even if gitignored.
 
-Machine-specific overrides (e.g., monitor-specific geometry, user-specific paths) are stored outside the repository, preferably in `configs/<app>.user.<hostname>.json` or equivalent, and are never committed.
+### Configuration precedence
+1. Upstream application behavior and documented schema remain authoritative.
+2. MooriShell supplies versioned defaults only for settings it explicitly owns.
+3. User overrides take precedence over MooriShell defaults.
+4. Machine-specific values are stored locally and never committed.
+5. If an application cannot support layered configuration, MooriShell generates a deployed file from defaults plus overrides and preserves the prior file before changing it.
 
-### Secrets
+MooriShell must document the destination path and ownership mode for every deployed file. It must not claim ownership of unrelated settings in the same application configuration.
 
-Secrets (API tokens, private keys, passwords, credentials) are never stored in the repository. Users provide them at runtime via environment variables, secret managers, or application-specific secret stores.
+### Backup and state tracking
+Before changing a destination, M2 must record whether it existed, capture pre-change content/metadata, create a timestamped backup outside the repository, and record source, destination, prior hash, deployed hash, and operation in a local state manifest. Abort or request explicit resolution when a destination has changed since the last MooriShell deployment.
 
-### Backup and restore
-
-MooriShell-owned configuration files in `configs/` are the source of truth. Users back up their machine-specific overrides and secrets separately. MooriShell does not provide automated backup/restore in M1; users copy configuration files manually.
-
-### Uninstall behavior
-
-MooriShell uninstall removes only MooriShell-owned files:
-- Configuration files in `configs/`
-- Scripts in `scripts/`
-- Documentation in `docs/`
-
-MooriShell does NOT:
-- Remove upstream applications (Komorebi, YASB, WezTerm, etc.)
-- Remove user customizations outside the repository
-- Remove user secrets or credentials
-- Modify the Winlogon `Shell` registry value (Shelled runs in dev mode)
+Backups exclude secrets unless the user explicitly uses an application-native encrypted backup mechanism. Do not copy credential stores into ordinary backup archives.
 
 ### Update behavior
+- Pulling repository changes does not itself modify live application configuration.
+- Applying an update is explicit.
+- If the deployed file is unchanged from the last MooriShell version, it may be backed up and updated.
+- If the user has edited the deployed file, preserve it and report a conflict; do not overwrite automatically.
 
-MooriShell does not automatically update upstream tools in M1. Users control when to upgrade upstream components. MooriShell configuration files are versioned in the repository; users pull updates and apply them manually.
+### Restore and uninstall
+- Restore operates only on paths recorded in MooriShell's local state manifest and requires an identifiable backup.
+- Uninstall removes only files created by MooriShell that are still byte-for-byte equal to the recorded deployed version.
+- If a managed file has been modified by the user, leave it in place and report it for manual review.
+- If MooriShell replaced a pre-existing file, restore the captured original only after preserving subsequent user edits and obtaining explicit confirmation where overwrite is possible.
+- Never remove upstream applications, user data, secrets, unrelated configuration, or the cloned MooriShell repository. Uninstall must not delete repository configs/, scripts/, or docs/.
 
 ## Consequences
-
-### Positive
-
-- Users retain full control over their machine and upstream tools.
-- No secrets or personal data in the repository.
-- Uninstall is safe and reversible.
-
-### Negative
-
-- Users must manually back up their configuration and secrets.
-- No automated backup/restore in M1.
-- Users must manually update upstream tools.
+- The repository is the source for MooriShell defaults, not live machine state.
+- Backups, logs, overrides, and deployment state remain local and outside version control.
+- Safe restore/uninstall requires a state manifest and hash-based ownership checks; M2 must implement these before claiming reversibility.
 
 ## Alternatives considered
-
-### Automated backup/restore in M1
-
-Rejected. Adds complexity before the core provisioning workflow (M2) is defined. Manual backup/restore is sufficient for the experimental stage.
-
-### Storing encrypted secrets in the repository
-
-Rejected. Violates the principle of never storing secrets in the repository.
-
-### Automatic application updates
-
-Rejected. Users should control their own tool versions; MooriShell documents versions but does not enforce them.
+- **Store user overrides under configs/:** Rejected because it mixes shared defaults with private machine state and risks accidental commits.
+- **Delete all known application config directories on uninstall:** Rejected because those directories may contain user-owned settings and unrelated data.
+- **Automatically overwrite changed configuration:** Rejected because it destroys user changes and makes rollback unreliable.
 
 ## Related
-
-- ADR-003: Integration tier classification
-- ADR-004: Ownership boundaries
-- Roadmap M1: https://github.com/openanaffa/moorishell/issues/1
-- Roadmap M2: https://github.com/openanaffa/moorishell/issues/2
+ADR-004, ADR-005; Roadmap M2: https://github.com/openanaffa/moorishell/issues/2
