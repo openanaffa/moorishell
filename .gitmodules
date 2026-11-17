@@ -1,12 +1,12 @@
 [submodule "shelled"]
-	path = shelled
+	path = src/shelled
 	url = F:/sources/shelled
 [submodule "wezterm"]
-	path = wezterm
+	path = src/wezterm
 	url = F:/sources/wezterm
 [submodule "komorebi"]
-	path = komorebi
+	path = src/komorebi
 	url = F:/sources/komorebi
 [submodule "yasb"]
-	path = yasb
+	path = src/yasb
 	url = F:/sources/yasb

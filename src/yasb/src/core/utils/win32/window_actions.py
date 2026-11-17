@@ -1,0 +1,251 @@
+import ctypes
+import logging
+
+from core.utils.win32.bindings.kernel32 import kernel32 as k32
+from core.utils.win32.bindings.user32 import (
+    GetWindowLong,
+    IsHungAppWindow,
+    IsWindowEnabled,
+    PostMessage,
+    get_window_thread_process_id,
+)
+from core.utils.win32.bindings.user32 import user32 as u32
+from core.utils.win32.constants import (
+    GA_ROOT,
+    GA_ROOTOWNER,
+    GWL_STYLE,
+    HWND_TOP,
+    PROCESS_TERMINATE,
+    SC_CLOSE,
+    SC_MAXIMIZE,
+    SC_MINIMIZE,
+    SC_RESTORE,
+    SMTO_ABORTIFHUNG,
+    SW_MAXIMIZE,
+    SW_MINIMIZE,
+    SW_RESTORE,
+    SW_SHOW,
+    SWP_ASYNCWINDOWPOS,
+    SWP_NOACTIVATE,
+    SWP_NOMOVE,
+    SWP_NOSIZE,
+    WM_CLOSE,
+    WM_SYSCOMMAND,
+    WS_MINIMIZEBOX,
+)
+
+
+def resolve_base_and_focus(hwnd: int) -> tuple[int, int]:
+    """Return (base_owner_root, focus_target). Focus target is the last active visible popup if any."""
+    base = hwnd
+    try:
+        base = u32.GetAncestor(hwnd, GA_ROOTOWNER) or u32.GetAncestor(hwnd, GA_ROOT) or hwnd
+    except Exception:
+        base = hwnd
+
+    focus_target = base
+    try:
+        last = u32.GetLastActivePopup(base)
+        if last and u32.IsWindowVisible(last):
+            focus_target = last
+    except Exception:
+        pass
+    return int(base), int(focus_target)
+
+
+def is_owner_root_active(base: int) -> bool:
+    """Check if the owner-root of the current foreground window matches base."""
+    fg = u32.GetForegroundWindow()
+    if not fg:
+        return False
+    try:
+        fg_top = u32.GetAncestor(fg, GA_ROOTOWNER) or u32.GetAncestor(fg, GA_ROOT) or fg
+    except Exception:
+        fg_top = fg
+    return int(fg_top) == int(base)
+
+
+def can_minimize(hwnd: int) -> bool:
+    style = GetWindowLong(int(hwnd), GWL_STYLE)
+    return bool(style & WS_MINIMIZEBOX) and bool(IsWindowEnabled(int(hwnd)))
+
+
+def _post_sys_command(hwnd: int, cmd: int, fallback_show_cmd: int) -> None:
+    # elevated apps don't take posted messages (UIPI), ShowWindowAsync still works on them
+    if not PostMessage(int(hwnd), WM_SYSCOMMAND, cmd, 0):
+        u32.ShowWindowAsync(int(hwnd), fallback_show_cmd)
+
+
+def restore_window(hwnd: int) -> None:
+    _post_sys_command(hwnd, SC_RESTORE, SW_RESTORE)
+
+
+def minimize_window(hwnd: int) -> None:
+    _post_sys_command(hwnd, SC_MINIMIZE, SW_MINIMIZE)
+
+
+def maximize_window(hwnd: int) -> None:
+    _post_sys_command(hwnd, SC_MAXIMIZE, SW_MAXIMIZE)
+
+
+def show_window(hwnd: int) -> None:
+    u32.ShowWindowAsync(int(hwnd), SW_SHOW)
+
+
+def set_foreground(hwnd: int) -> None:
+    """Bring the window to the front and focus it, without waiting for it."""
+    flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS
+    u32.SetWindowPos(int(hwnd), HWND_TOP, 0, 0, 0, 0, flags)
+    u32.SetForegroundWindow(int(hwnd))
+
+
+def force_foreground_focus(hwnd: int) -> None:
+    """
+    Force a window to foreground with focus.
+
+    Args:
+        hwnd: Window handle to set as foreground
+    """
+    if not hwnd:
+        return
+
+    try:
+        # Get the current foreground window
+        fg_hwnd = u32.GetForegroundWindow()
+
+        if fg_hwnd:
+            fg_tid, _ = get_window_thread_process_id(fg_hwnd)
+            my_tid = k32.GetCurrentThreadId()
+            if fg_tid and my_tid and fg_tid != my_tid:
+                u32.AttachThreadInput(my_tid, fg_tid, True)
+                u32.SetForegroundWindow(hwnd)
+                u32.SetFocus(hwnd)
+                u32.AttachThreadInput(my_tid, fg_tid, False)
+            else:
+                u32.SetForegroundWindow(hwnd)
+                u32.SetFocus(hwnd)
+        else:
+            u32.SetForegroundWindow(hwnd)
+            u32.SetFocus(hwnd)
+    except Exception as e:
+        logging.debug("Failed to force foreground focus: %s", e)
+
+
+def close_application(hwnd: int, force: bool = False):
+    """
+    Close the application associated with the given HWND.
+
+    Args:
+        hwnd: The window handle of the application to close
+        force: If True, forcefully terminates the process (like Task Manager's End Task)
+               If False, tries graceful close methods first
+
+    Graceful close (force=False):
+    - SendMessageTimeout(WM_SYSCOMMAND, SC_CLOSE) to the root owner window
+    - If the window is hung, fall back to PostMessage(WM_CLOSE)
+    - As a last resort, call EndTask (graceful attempt)
+
+    Forced termination (force=True):
+    - Tries EndTask with force flag
+    - Falls back to direct TerminateProcess
+    """
+    try:
+        if not hwnd or hwnd == 0:
+            logging.warning("Invalid HWND: %s", hwnd)
+            return
+
+        # Resolve a better target: prefer GA_ROOTOWNER, then GA_ROOT
+        try:
+            root_owner = u32.GetAncestor(int(hwnd), GA_ROOTOWNER)
+        except Exception:
+            root_owner = 0
+        try:
+            root = u32.GetAncestor(int(hwnd), GA_ROOT)
+        except Exception:
+            root = 0
+        target_hwnd = int(root_owner or root or hwnd)
+
+        if force:
+            # Forced termination path
+            # Get process ID for direct termination
+            try:
+                _, process_id = get_window_thread_process_id(hwnd)
+            except Exception as e:
+                logging.error("Failed to get process ID for HWND %s: %s", hwnd, e)
+                return
+
+            if not process_id:
+                logging.warning("No process ID found for HWND: %s", hwnd)
+                return
+
+            # Try forced EndTask first (Windows shell approach)
+            try:
+                # BOOL EndTask(HWND hWnd, BOOL fShutDown, BOOL fForce)
+                # fForce=True makes it more aggressive
+                endtask_ok = u32.EndTask(int(target_hwnd), False, True)
+                if endtask_ok:
+                    logging.info("Successfully ended task via forced EndTask for HWND: %s", hwnd)
+                    return
+            except Exception as et_ex:
+                logging.warning("Forced EndTask failed for HWND %s: %s", target_hwnd, et_ex)
+
+            # Fallback: Direct process termination
+            try:
+                # Open process handle with terminate rights
+                process_handle = k32.OpenProcess(PROCESS_TERMINATE, False, process_id)
+                if not process_handle:
+                    logging.error("Failed to open process %s for termination", process_id)
+                    return
+
+                # Terminate the process with exit code 1
+                terminated = k32.TerminateProcess(process_handle, 1)
+                if terminated:
+                    logging.info("Successfully terminated process %s for HWND: %s", process_id, hwnd)
+                else:
+                    logging.warning("TerminateProcess returned False for process %s", process_id)
+
+                # Close the process handle
+                k32.CloseHandle(process_handle)
+
+            except Exception as term_ex:
+                logging.error("Failed to terminate process %s: %s", process_id, term_ex)
+
+        else:
+            # Graceful close path
+            # First try: SC_CLOSE via SendMessageTimeout to avoid hangs
+            lpdw_result = ctypes.c_size_t()
+            sent = u32.SendMessageTimeoutW(
+                int(target_hwnd),
+                int(WM_SYSCOMMAND),
+                int(SC_CLOSE),
+                0,
+                int(SMTO_ABORTIFHUNG),
+                2000,
+                ctypes.byref(lpdw_result),
+            )
+
+            if sent:
+                return
+
+            # SendMessageTimeout also gives up while the app shows a modal prompt for SC_CLOSE
+            # ("Save changes?"). Only a hung window needs the fallback; a responsive one would
+            # get a second close request on top of the open prompt.
+            if not IsHungAppWindow(int(target_hwnd)):
+                return
+
+            # Fallback: WM_CLOSE via PostMessage
+            posted = PostMessage(int(target_hwnd), int(WM_CLOSE), 0, 0)
+            if posted:
+                return
+
+            # Last resort: EndTask (graceful attempt, not forced)
+            # BOOL EndTask(HWND hWnd, BOOL fShutDown, BOOL fForce)
+            try:
+                endtask_ok = u32.EndTask(int(target_hwnd), False, False)
+                if not endtask_ok:
+                    logging.warning("EndTask failed for HWND: %s", target_hwnd)
+            except Exception as et_ex:
+                logging.warning("EndTask unavailable/failed for HWND %s: %s", target_hwnd, et_ex)
+
+    except Exception as e:
+        logging.error("Failed to close window %s: %s", hwnd, e)
