@@ -12,10 +12,14 @@
 #                    "direct" means download from source URL manually.
 #   install_method: package_manager | direct_download | portable
 #   category:      shell | terminal | window_manager | status_bar | runtime | other
+#   executable:    Expected executable for detection; null until validated.
+#   status:        managed | manual (unmanaged until source is validated)
+#   artifact_url:  Exact release artifact URL; null when no artifact is approved.
+#   checksum:      SHA-256 of the exact artifact; null means installs are blocked.
 #
-# NOTE: As of M1, no package manager is selected (see ADR-005). All entries
-# use "direct" install_method, meaning users download from the source URL
-# manually or via their preferred package manager.
+# NOTE: These entries are inventory only. Homepage URLs are not artifacts,
+# and no checksum is defined. The bootstrapper must refuse installation until
+# each entry has a validated authoritative source and artifact integrity data.
 
 - id: shelled
   name: Shelled
@@ -26,6 +30,10 @@
   package_manager: direct
   install_method: direct_download
   category: shell_host
+  executable: null
+  status: manual
+  artifact_url: null
+  checksum: null
 
 - id: wezterm
   name: WezTerm
@@ -36,6 +44,10 @@
   package_manager: direct
   install_method: direct_download
   category: terminal
+  executable: null
+  status: manual
+  artifact_url: null
+  checksum: null
 
 - id: komorebi
   name: Komorebi
@@ -46,6 +58,10 @@
   package_manager: direct
   install_method: direct_download
   category: window_manager
+  executable: null
+  status: manual
+  artifact_url: null
+  checksum: null
 
 - id: yasb
   name: YASB
@@ -56,3 +72,7 @@
   package_manager: direct
   install_method: direct_download
   category: status_bar
+  executable: null
+  status: manual
+  artifact_url: null
+  checksum: null

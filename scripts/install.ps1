@@ -201,11 +201,59 @@ function Parse-YamlCatalog {
         }
         $fieldKey = $Matches['key']
         $fieldValue = $Matches['value'].Trim()
-        if ($fieldValue -match '^"(?<quoted>.*)"$') { $fieldValue = $Matches['quoted'] }
+        if ($fieldValue -eq 'null') { $fieldValue = $null }
+        elseif ($fieldValue -match '^"(?<quoted>.*)"$') { $fieldValue = $Matches['quoted'] }
         $current[$fieldKey] = $fieldValue
     }
     if ($null -ne $current) { $packages.Add([pscustomobject]$current) }
     return @($packages.ToArray())
+}
+
+function Test-Catalog {
+    param([object[]]$Packages)
+
+    $seenIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $valid = $true
+    foreach ($package in $Packages) {
+        foreach ($field in @('id', 'name', 'source', 'version_policy', 'version', 'install_scope', 'package_manager', 'install_method', 'category', 'status', 'artifact_url', 'checksum')) {
+            if (-not $package.PSObject.Properties[$field]) {
+                Write-Log "Catalog entry is missing required field '$field'." "ERROR"
+                $valid = $false
+            }
+        }
+        if (-not $package.id -or -not $seenIds.Add([string]$package.id)) {
+            Write-Log "Catalog package id is empty or duplicated: '$($package.id)'" "ERROR"
+            $valid = $false
+        }
+        if ($package.status -notin @('managed', 'manual')) {
+            Write-Log "Unsupported status for $($package.id): $($package.status)" "ERROR"
+            $valid = $false
+        }
+        if ($package.status -eq 'managed') {
+            if (-not $package.artifact_url -or $package.artifact_url -notmatch '^https://') {
+                Write-Log "Managed package $($package.id) must have a verified HTTPS artifact_url." "ERROR"
+                $valid = $false
+            }
+            if (-not $package.checksum -or $package.checksum -notmatch '^[A-Fa-f0-9]{64}$') {
+                Write-Log "Managed package $($package.id) must have a SHA-256 checksum." "ERROR"
+                $valid = $false
+            }
+            if (-not $package.executable) {
+                Write-Log "Managed package $($package.id) must declare its expected executable." "ERROR"
+                $valid = $false
+            }
+            if ($package.package_manager -eq 'direct' -and $package.install_method -ne 'direct_download') {
+                Write-Log "Direct package $($package.id) must use direct_download." "ERROR"
+                $valid = $false
+            }
+        }
+        if ($package.source -notmatch '^https://') {
+            Write-Log "Package $($package.id) source must be HTTPS." "ERROR"
+            $valid = $false
+        }
+    }
+
+    return $valid
 }
 
 function Test-PackageInstalled {
@@ -267,6 +315,10 @@ function Main {
             return 2
         }
         Write-Log "Loaded $($packages.Count) package(s) from catalog." "INFO"
+        if (-not (Test-Catalog -Packages $packages)) {
+            Write-Log "Catalog validation failed; no changes made." "ERROR"
+            return 2
+        }
 
         # These operations must never report success until they use the
         # manifest and hash-checked state model specified by ADR-006.
@@ -286,7 +338,11 @@ function Main {
         # Plan mode is intentionally offline and has no side effects.
         if ($Plan) {
             foreach ($pkg in $packages) {
-                Write-Log "[PLAN] Would inspect package $($pkg.id) ($($pkg.name)); installation is not configured." "INFO"
+                if ($pkg.status -eq 'manual') {
+                    Write-Log "[PLAN] $($pkg.id): manual/unmanaged; no validated artifact mapping." "INFO"
+                } else {
+                    Write-Log "[PLAN] $($pkg.id): managed from $($pkg.package_manager) via $($pkg.artifact_url); installation remains disabled pending installer implementation." "INFO"
+                }
             }
             Write-Log "Plan complete. No backup, configuration, package, or log files were created." "INFO"
             return 0
