@@ -257,7 +257,7 @@ try {
 				);
 			run({
 				exe: "bun",
-				args: ["test", "tests/e2e/quick-settings.e2e.test.js"],
+				args: ["test", "./tests/e2e/quick-settings.e2e.test.js"],
 				cwd: dirname(ui),
 			});
 			break;
