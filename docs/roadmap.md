@@ -1,7 +1,7 @@
 # MooriShell Roadmap
 
 **Status:** Active planning  
-**Last updated:** 2026-11-16  
+**Last updated:** 2026-11-17
 **Delivery model:** Milestone-based; no calendar estimates until the scope and implementation pace are validated.
 
 MooriShell is a Windows-native desktop workspace that combines existing applications, configuration, automation, and documentation. The roadmap prioritizes a dependable setup and daily workflow before optional visual and productivity features.
@@ -31,8 +31,8 @@ MooriShell should provide:
 | Milestone | Focus | Status | Tracking |
 |---|---|---|---|
 | M0 | Repository foundation and project identity | **Complete** | Initial scaffold, architecture overview, contributing guide, MIT license |
-| M1 | Product scope and architecture | Not started | [Issue #1](https://github.com/openanaffa/moorishell/issues/1) |
-| M2 | Reproducible provisioning and configuration management | Not started | [Issue #2](https://github.com/openanaffa/moorishell/issues/2) |
+| M1 | Product scope and architecture | **In progress — decisions drafted, issue checklist incomplete** | [Issue #1](https://github.com/openanaffa/moorishell/issues/1) |
+| M2 | Reproducible provisioning and configuration management | **Scaffold only — blocked pending M1 completion** | [Issue #2](https://github.com/openanaffa/moorishell/issues/2) |
 | M3 | Core desktop experience | Not started | [Issue #3](https://github.com/openanaffa/moorishell/issues/3) |
 | M4 | Portable developer toolchain | Not started | [Issue #4](https://github.com/openanaffa/moorishell/issues/4) |
 | M5 | WSL2 and container workspaces | Not started | [Issue #5](https://github.com/openanaffa/moorishell/issues/5) |
@@ -199,6 +199,14 @@ Key outputs:
 - Prefer small pull requests linked to the relevant milestone issue.
 - Mark work as experimental when it has not passed its validation gate.
 
+## Current inventory (2026-11-17)
+
+- M1 has six ADRs and an updated architecture overview in the repository. GitHub issue #1 has only its first two task checkboxes checked; the remaining five tasks and both exit criteria are unchecked. Review the ADRs for completeness, especially ownership, package policy, and configuration lifecycle, before closing M1.
+- M2 has `configs/packages.yaml` and an initial `scripts/install.ps1` scaffold. The script currently fails at startup because it redeclares the common `-Verbose` parameter. Its package download/install behavior is a placeholder, restore/uninstall are incomplete, and the clean-machine and recovery exit criteria have not been validated. GitHub issue #2 remains entirely unchecked.
+- M3 has Shelled source customizations in the submodule (quick-launch/battery UI, hotkey bridge, safe-mode command allow-list) and prebuilt Komorebi/WezTerm binaries were used during local experiments. This does not yet establish versioned MooriShell configs, lifecycle/recovery behavior, or the multi-display validation required by issue #3.
+- M4–M8 remain planned; no milestone completion evidence is recorded in the repository inventory.
+- The submodule URLs in `.gitmodules` are local absolute `F:/sources/...` paths. This is not portable for a clean clone and must be fixed before setup can be reproducible.
+
 ## Current next action
 
-Start with [M1 — Define product scope and architecture](https://github.com/openanaffa/moorishell/issues/1). Decide the supported Windows baseline, integration tiers, package-manager policy, and configuration ownership before building the bootstrap workflow.
+Complete and review [M1 - Define product scope and architecture](https://github.com/openanaffa/moorishell/issues/1), then resume M2. Do not mark a GitHub task or exit criterion complete until the implementation and its evidence meet that criterion.

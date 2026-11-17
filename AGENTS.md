@@ -87,11 +87,11 @@ Upstream applications retain ownership of their code, executables, assets, relea
 
 ## Current execution priority
 
-**Start with M1 — Define product scope and architecture.**
+**Current status: M1 decisions are drafted but the GitHub milestone is not complete.**
 
 Tracking issue: https://github.com/openanaffa/moorishell/issues/1
 
-Resolve these before building the provisioning workflow:
+Review and resolve these before treating M1 as complete or advancing M2:
 
 - Supported Windows baseline and minimum assumptions.
 - Core, optional, experimental, and out-of-scope integrations.
@@ -101,7 +101,7 @@ Resolve these before building the provisioning workflow:
 
 Record durable decisions in short Architecture Decision Records under `docs/architecture/adr/` (create the directory when the first ADR is approved) and update `docs/architecture/overview.md`.
 
-Do not implement M2 provisioning until the decisions that affect its design are settled or explicitly marked as deferred.
+An M2 scaffold exists, but it is not a working provisioning implementation and currently fails at script startup. Do not describe M2 as complete or mark issue checkboxes based on file presence alone. Fix the startup blocker and implement/test each behavior before claiming it.
 
 ## Expected handoff after each task
 
