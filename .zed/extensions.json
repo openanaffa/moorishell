@@ -1,0 +1,10 @@
+[
+  "powershell",
+  "toml",
+  "json5",
+  "github-actions",
+  "dockerfile",
+  "nix",
+  "catppuccin",
+  "jetbrains-new-ui-icons"
+]

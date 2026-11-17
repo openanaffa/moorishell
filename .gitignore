@@ -30,3 +30,10 @@ dist/
 build/
 out/
 .cache/
+
+# Git Flow worktrees (sibling directories are preferred; keep any accidental
+# in-repository worktree scratch area out of version control).
+.worktrees/
+
+# Zed local project state; keep shared settings and extension recommendations.
+.zed/debug.json
