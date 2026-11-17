@@ -341,7 +341,9 @@ function Backup-Configuration {
                 Write-Log "  Backed up: $configPath -> $dest" "INFO"
                 $backedUp += $dest
             } catch {
-                Write-Log "  Failed to back up $configPath: $($_.Exception.Message)" "WARN"
+                $err = $_
+                $errMsg = $err.Exception.Message
+                Write-Log ("  Failed to back up " + $configPath + ": " + $errMsg) "WARN"
             }
         }
     }
