@@ -28,12 +28,15 @@ The Bun manifest pins `@types/bun` and TypeScript for a strict type-checking
 surface. The orchestrator itself uses only Bun's Node-compatible standard
 libraries; it has no runtime third-party dependencies.
 
-The default Shelled source is the portable `src/shelled` submodule. If that
-submodule is unavailable locally but a full Shelled checkout exists elsewhere,
-set `SHELLED_SOURCE` in an untracked `.env.local` or current shell, for example:
+The default Shelled source is the portable `src/shelled` submodule. The local
+submodule can lag the customized feature branch. For `make ui-focused`, point
+`SHELLED_SOURCE` at a full checkout containing
+`tests/e2e/quick-settings.e2e.test.js`. Set it in an untracked `.env.local`
+(after loading that file into your shell) or in the current PowerShell session:
 
 ```powershell
 $env:SHELLED_SOURCE = 'F:\sources\shelled'
+make ui-focused
 ```
 
 Do not commit `.env.local`; `.env.example` intentionally contains no machine

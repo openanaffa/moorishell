@@ -255,6 +255,18 @@ try {
 				throw new Error(
 					`UI dependencies are not installed at ${nodeModules}; run the documented dependency setup when online.`,
 				);
+			const focusedTest = join(
+				dirname(ui),
+				"tests",
+				"e2e",
+				"quick-settings.e2e.test.js",
+			);
+			if (!existsSync(focusedTest)) {
+				throw new Error(
+					`Quick Settings test is absent from ${shelledSource}. Set SHELLED_SOURCE to a checkout containing feature/shell-quick-settings (currently F:\\sources\\shelled).`,
+				);
+			}
+			console.log(`Quick Settings test source: ${focusedTest}`);
 			run({
 				exe: "bun",
 				args: ["test", "./tests/e2e/quick-settings.e2e.test.js"],
